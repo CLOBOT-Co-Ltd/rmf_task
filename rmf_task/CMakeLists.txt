@@ -28,6 +28,10 @@ find_package(Eigen3 REQUIRED)
 find_package(ament_cmake_catch2 QUIET)
 find_package(rmf_cmake_uncrustify QUIET)
 
+if(DEFINED ENV{CLOBER_RMF}) # clober
+  find_package(rmf_dispenser_msgs REQUIRED)
+  find_package(rclcpp REQUIRED)
+endif()
 # ===== RMF Tasks library
 file(GLOB lib_srcs
   "src/rmf_task/agv/*.cpp"
@@ -80,6 +84,9 @@ if(BUILD_TESTING AND ament_cmake_catch2_FOUND AND rmf_cmake_uncrustify_FOUND)
   )
 endif()
 
+if(DEFINED ENV{CLOBER_RMF}) # clober
+  add_compile_definitions(CLOBER_RMF)
+endif()
 
 # Create cmake config files
 include(CMakePackageConfigHelpers)

@@ -31,6 +31,10 @@
 #include <functional>
 #include <variant>
 
+#ifdef CLOBER_RMF
+#include <iostream>
+#endif
+
 namespace rmf_task {
 namespace agv {
 

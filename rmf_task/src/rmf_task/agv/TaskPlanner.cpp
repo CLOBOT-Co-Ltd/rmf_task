@@ -524,11 +524,25 @@ public:
     TaskPlannerError error;
     auto node = make_initial_node(
       initial_states, requests, time_now, error);
+    #ifdef CLOBER_RMF
+    std::cout <<" complete_solve node 정보 ~~~~ assigned task size :  "<< node->assigned_tasks.size() << std::endl;
+    #endif
     if (!node)
       return error;
 
+    #ifdef CLOBER_RMF
+    std::cout <<"333333"<<std::endl;
+    #endif
     TaskPlanner::Assignments complete_assignments;
     complete_assignments.resize(node->assigned_tasks.size());
+    #ifdef CLOBER_RMF
+    for(int i=0; i<node->assigned_tasks.size(); i++){
+      std::cout <<"assigne task ["<<i<<"] size : "<<node->assigned_tasks[i].size()<< std::endl;
+      for(int j=0; j<node->assigned_tasks[i].size(); j++){
+        std::cout << "( " << i <<", "<<j<< " ) internal id : " << node->assigned_tasks[i][j].internal_id << std::endl;
+      }
+    }
+    #endif
 
     while (node)
     {
@@ -1118,6 +1132,16 @@ auto TaskPlanner::plan(
   std::vector<ConstRequestPtr> requests,
   Options options) -> Result
 {
+  #ifdef CLOBER_RMF
+  std::cout <<"optimal plan ~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+  for(int i=0; i<agents.size(); i++){
+    std::cout << i <<" 번째 로봇 waypoint index : "<< agents[i].waypoint() <<", orientaion : " << agents[i].location().orientation() << std::endl;
+  }
+
+  for(int i=0; i<requests.size(); i++){
+    std::cout << i <<" 번째 request, id : " << requests[i]->id() <<std::endl;
+  }
+  #endif
   return _pimpl->complete_solve(
     time_now,
     agents,

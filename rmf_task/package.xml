@@ -10,6 +10,7 @@
   <author>Aaron</author>
   <author>Yadunund</author>
 
+  <build_depend condition="$CLOBER_RMF == 1">rmf_dispenser_msgs</build_depend>
   <depend>rmf_battery</depend>
   <depend>rmf_utils</depend>
 
