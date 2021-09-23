@@ -37,10 +37,6 @@ public:
   {
     if (_battery_soc < 0.0 || _battery_soc > 1.0)
     {
-      #ifdef CLOBER_RMF
-      std::cout <<"State::Implementation 배터리 문제 _battery_soc : "<<_battery_soc<< std::endl;
-      #endif
-
       // *INDENT-OFF* (prevent uncrustify from making unnecessary indents here)
       throw std::invalid_argument(
         "Battery State of Charge needs to be between 0.0 and 1.0.");
@@ -100,9 +96,6 @@ State& State::battery_soc(double new_battery_soc)
 {
   if (new_battery_soc < 0.0 || new_battery_soc > 1.0)
   {
-    #ifdef CLOBER_RMF
-    std::cout <<"State::battery_soc 배터리 문제"<<std::endl;
-    #endif
     // *INDENT-OFF* (prevent uncrustify from making unnecessary indents here)
     throw std::invalid_argument(
       "Battery State of Charge needs be between 0.0 and 1.0.");

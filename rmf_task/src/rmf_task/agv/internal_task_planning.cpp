@@ -108,21 +108,9 @@ std::shared_ptr<Candidates> Candidates::make(
   Map initial_map;
   for (std::size_t i = 0; i < initial_states.size(); ++i)
   {
-    #ifdef CLOBER_RMF
-    std::cout << "Candidates::make" << std::endl;
-    #endif
     const auto& state = initial_states[i];
     const auto finish = request_model.estimate_finish(
       state, constraints, estimate_cache);
-
-    #ifdef CLOBER_RMF
-    std::time_t tt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now() + (start_time - std::chrono::steady_clock::now()));
-    std::tm * ptm = std::localtime(&tt);
-    char buffer[32];
-    // Format: Mo, 15.06.2009 20:20:00
-    std::strftime(buffer, 32, "%a, %d.%m.%Y %H:%M:%S", ptm);  
-    std::cout << "Candidates::make :: " << buffer << std::endl;
-    #endif
 
     if (finish.has_value())
     {

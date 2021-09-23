@@ -50,9 +50,6 @@ Constraints::Constraints(
 {
   if (threshold_soc < 0.0 || threshold_soc > 1.0)
   {
-    #ifdef CLOBER_RMF
-    std::cout <<"Constraints::Constraints 배터리 문제"<<std::endl;
-    #endif
     // *INDENT-OFF* (prevent uncrustify from making unnecessary indents here)
     throw std::invalid_argument(
       "Battery State of Charge threshold needs to be between 0.0 and 1.0.");
@@ -79,10 +76,6 @@ auto Constraints::threshold_soc(double threshold_soc) -> Constraints&
 {
   if (threshold_soc < 0.0 || threshold_soc > 1.0)
   {
-    #ifdef CLOBER_RMF
-    std::cout <<"Constraints::threshold_soc 배터리 문제"<<std::endl;
-    #endif
-    
     // *INDENT-OFF* (prevent uncrustify from making unnecessary indents here)
     throw std::invalid_argument(
       "Battery State of Charge threshold needs to be between 0.0 and 1.0.");

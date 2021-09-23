@@ -72,30 +72,17 @@ Loop::Model::Model(
       0.0};
     rmf_traffic::agv::Planner::Goal loop_end_goal{_finish_waypoint};
 
-    #ifdef CLOBER_RMF
-    std::cout <<"Loop::Model::Model plan 호출"<<std::endl;
-    #endif
     const auto forward_loop_plan = _parameters.planner()->plan(
       loop_start, loop_end_goal);
 
-    #ifdef CLOBER_RMF
-    std::cout <<"Loop::Model::Model 1"<<std::endl;
-    std::cout <<"Loop::Model::Model itinery size : " << forward_loop_plan->get_itinerary().size() << std::endl;
-    #endif
     auto itinerary_start_time = _earliest_start_time;
     double forward_battery_drain = 0.0;
     rmf_traffic::Duration forward_duration(0);
     for (const auto& itinerary : forward_loop_plan->get_itinerary())
     {
       const auto& trajectory = itinerary.trajectory();
-      #ifdef CLOBER_RMF
-      std::cout <<"Loop::Model::Model 3"<<std::endl;
-      #endif
       const auto& finish_time = *trajectory.finish_time();
       const auto itinerary_duration = finish_time - itinerary_start_time;
-      #ifdef CLOBER_RMF
-      std::cout <<"Loop::Model::Model 4"<<std::endl;
-      #endif
 
       // Compute the invariant battery drain
       const double dSOC_motion =
@@ -108,9 +95,7 @@ Loop::Model::Model(
       forward_duration += itinerary_duration;
       itinerary_start_time = finish_time;
     }
-    #ifdef CLOBER_RMF
-    std::cout <<"Loop::Model::Model 2"<<std::endl;
-    #endif
+
     _invariant_duration =
       (2 * num_loops - 1) * forward_duration;
     _invariant_battery_drain =
@@ -129,9 +114,6 @@ std::optional<rmf_task::Estimate> Loop::Model::estimate_finish(
 
   const rmf_traffic::Time start_time = initial_state.finish_time();
   double battery_soc = initial_state.battery_soc();
-  #ifdef CLOBER_RMF
-  std::cout <<"Loop::Model::estimate_finish batter_soc : " << battery_soc << std::endl;
-  #endif
   double dSOC_motion = 0.0;
   double dSOC_device = 0.0;
   const bool drain_battery = task_planning_constraints.drain_battery();
@@ -156,9 +138,6 @@ std::optional<rmf_task::Estimate> Loop::Model::estimate_finish(
     {
       // Compute plan to start_waypoint along with battery drain
       rmf_traffic::agv::Planner::Goal loop_start_goal{endpoints.second};
-      #ifdef CLOBER_RMF
-      std::cout <<"Loop::Model::estimate_finish plan 호출 1"<<std::endl;
-      #endif
       const auto plan_to_start = planner.plan(
         initial_state.location(), loop_start_goal);
       // We assume we can always compute a plan
@@ -180,9 +159,6 @@ std::optional<rmf_task::Estimate> Loop::Model::estimate_finish(
             ambient_sink.compute_change_in_charge(
             rmf_traffic::time::to_seconds(itinerary_duration));
           battery_soc = battery_soc - dSOC_motion - dSOC_device;
-          #ifdef CLOBER_RMF
-          std::cout <<"Loop::Model::estimate_finish batter_soc(drain_battery 1) : " << battery_soc << std::endl;
-          #endif
           variant_battery_drain += dSOC_motion + dSOC_device;
         }
         itinerary_start_time = finish_time;
@@ -212,9 +188,6 @@ std::optional<rmf_task::Estimate> Loop::Model::estimate_finish(
     dSOC_device = ambient_sink.compute_change_in_charge(
       rmf_traffic::time::to_seconds(wait_duration));
     battery_soc = battery_soc - dSOC_device;
-    #ifdef CLOBER_RMF
-    std::cout <<"Loop::Model::estimate_finish batter_soc(drain_battery 2) : " << battery_soc << std::endl;
-    #endif
 
     if (battery_soc <= task_planning_constraints.threshold_soc())
     {
@@ -231,10 +204,6 @@ std::optional<rmf_task::Estimate> Loop::Model::estimate_finish(
   if (drain_battery)
   {
     battery_soc -= _invariant_battery_drain;
-    #ifdef CLOBER_RMF
-    std::cout <<"Loop::Model::estimate_finish batter_soc(drain_battery 3, _invariant_battery_drain) : " << _invariant_battery_drain << std::endl;
-    std::cout <<"Loop::Model::estimate_finish batter_soc(drain_battery 3) : " << battery_soc << std::endl;
-    #endif
     if (battery_soc <= task_planning_constraints.threshold_soc())
       return std::nullopt;
 
@@ -257,56 +226,18 @@ std::optional<rmf_task::Estimate> Loop::Model::estimate_finish(
         rmf_traffic::agv::Planner::Goal charger_goal{
           endpoints.second};
 
-        #ifdef CLOBER_RMF
-        std::cout <<"Loop::Model::estimate_finish plan 호출 2"<<std::endl;
-        #endif
         const auto result_to_charger = planner.plan(
           retreat_start, charger_goal);
         // We assume we can always compute a plan
         auto itinerary_start_time = state_finish_time;
         rmf_traffic::Duration retreat_duration(0);
-        #ifdef CLOBER_RMF
-        std::cout <<"Loop::Model::estimate_finish 1"<<std::endl;
-        std::cout <<"Loop::Model::estimate_finish itinery size : " << result_to_charger->get_itinerary().size() << std::endl;
-        #endif
+
         for (const auto& itinerary : result_to_charger->get_itinerary())
         {
           const auto& trajectory = itinerary.trajectory();
           const auto& finish_time = *trajectory.finish_time();
           const rmf_traffic::Duration itinerary_duration =
             finish_time - itinerary_start_time;
-          #ifdef CLOBER_RMF
-          for(auto it=trajectory.begin(); it!=trajectory.end(); it++){
-            std::cout <<"trajectory x : " << it->position().x() << ", y : " << it->position().y() << std::endl;            
-          }
-
-
-          std::time_t tt_current = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-          std::tm * ctm = std::localtime(&tt_current);
-          char bu[32];
-          // Format: Mo, 15.06.2009 20:20:00
-          std::strftime(bu, 32, "%a, %d.%m.%Y %H:%M:%S", ctm);  
-          std::cout << "current time : " << bu << std::endl;
-
-
-          std::time_t tt_start = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now() + (itinerary_start_time - std::chrono::steady_clock::now()));
-          std::tm * stm = std::localtime(&tt_start);
-          char buff[32];
-          // Format: Mo, 15.06.2009 20:20:00
-          std::strftime(buff, 32, "%a, %d.%m.%Y %H:%M:%S", stm);  
-          std::cout << "start time : " << buff << std::endl;
-
-
-          std::time_t tt_finish = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now() + (finish_time - std::chrono::steady_clock::now()));
-          std::tm * ptm = std::localtime(&tt_finish);
-          char buffer[32];
-          // Format: Mo, 15.06.2009 20:20:00
-          std::strftime(buffer, 32, "%a, %d.%m.%Y %H:%M:%S", ptm);  
-          std::cout << "finish time : " << buffer << std::endl;
-
-
-          std::cout <<"Loop::Model::estimate_finish itinery duration : "<< rmf_traffic::time::to_seconds(itinerary_duration) << std::endl;
-          #endif
 
           dSOC_motion = motion_sink.compute_change_in_charge(
             trajectory);
@@ -317,9 +248,7 @@ std::optional<rmf_task::Estimate> Loop::Model::estimate_finish(
           itinerary_start_time = finish_time;
           retreat_duration += itinerary_duration;
         }
-        #ifdef CLOBER_RMF
-        std::cout <<"Loop::Model::estimate_finish 2"<<std::endl;
-        #endif
+
         estimate_cache.set(endpoints, retreat_duration,
           retreat_battery_drain);
       }
@@ -329,9 +258,6 @@ std::optional<rmf_task::Estimate> Loop::Model::estimate_finish(
         return std::nullopt;
     }
   }
-  #ifdef CLOBER_RMF
-  std::cout <<"Loop::Model::estimate_finish ~~ "<<std::endl;
-  #endif
 
   // Return Estimate
   rmf_traffic::agv::Planner::Start location{
@@ -339,18 +265,12 @@ std::optional<rmf_task::Estimate> Loop::Model::estimate_finish(
     _finish_waypoint,
     initial_state.location().orientation()};
   #ifdef CLOBER_RMF
-  std::cout <<"Loop::Model::estimate_finish 문제 지점 통과 1 "<<std::endl;
-  std::cout <<"Loop::Model::estimate_finish batter_soc : " << battery_soc << std::endl;
-
   battery_soc = 0.99;
   #endif
   agv::State state{
     std::move(location),
     initial_state.charging_waypoint(),
     battery_soc};
-  #ifdef CLOBER_RMF
-  std::cout <<"Loop::Model::estimate_finish 문제 지점 통과 2 "<<std::endl;
-  #endif
 
   return Estimate(state, wait_until);
 }
